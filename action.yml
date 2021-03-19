@@ -1,0 +1,33 @@
+name:        'Paketo Build with pack CLI & push to registry'
+description: 'Build and publish OCI container image using Cloud Native Buildpacks / Paketo.io in GitHub Actions'
+author:      'jonas.hecht@codecentric.de'
+
+inputs:
+  pack-version:
+    description: 'The version of pack to install'
+    required:    false
+    default:     '0.17.0'
+
+runs:
+  using: "composite"
+  steps:
+    # Reusing the great pack CLI installation from https://github.com/buildpacks/github-actions/blob/main/setup-pack/action.yml
+    # As of https://github.com/actions/runner/issues/646 we can't simply reuse the Action, but if thats possible, we should do it :)
+    - name: Setup pack CLI
+      shell: bash
+      run:   |
+        #!/usr/bin/env bash
+        set -euo pipefail
+        mkdir -p "${HOME}"/bin
+        echo "PATH=${HOME}/bin:${PATH}" >> "${GITHUB_ENV}"
+        PACK_VERSION=${{ inputs.pack-version }}
+        echo "Installing pack ${PACK_VERSION}"
+        curl \
+          --show-error \
+          --silent \
+          --location \
+          "https://github.com/buildpacks/pack/releases/download/v${PACK_VERSION}/pack-v${PACK_VERSION}-linux.tgz" \
+        | tar -C "${HOME}/bin" -xz pack
+    - name: Say hello
+      shell: bash
+      run: echo "pack CLI is ready now!"
